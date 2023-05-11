@@ -1,0 +1,127 @@
+/// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © sayanjhikra 
+
+//@version=5
+indicator(title='Master CPR  by Sayan', shorttitle='Master CPR  by Sayan', overlay=true)
+level = input(false, title='Price level', group="LEVEL")
+df = syminfo.ticker == "NIFTY" ? input.float(50,title="Nifty lvl", options =[50,100,500,1000],group="LEVEL") : syminfo.ticker == "BANKNIFTY" ? input.float(100,title="Bank Nifty", options =[50,100,500,1000],group="LEVEL") : input.float(100,title="Others", options =[2.5,5,10,50,100,500,1000],group="LEVEL")
+//lines = input.int(,title="No. of lines", options =[5,10,20,30],group="LEVEL")
+
+cpr1 = input(true, title='CPR', group="Indicator")
+sr = input(true, title='SR', group="Indicator")
+//phl1 = input(true, title='PREVIOUS HIGH/LOW', group="Indicator")
+tcpr = input(false, title='UPCOMING CPR', group="Indicator")
+t_cpr = input(false, title='Show only this day', group="Indicator")
+
+sma_c = input(false, title='sma20 ',group="Indicator")
+//////
+i = tcpr ? 0 : 1
+
+isToday = false
+
+if year(timenow) == year(time) and month(timenow) == month(time) and dayofmonth(timenow) == dayofmonth(time)
+    isToday := true
+
+cpr = t_cpr ? cpr1 and isToday : cpr1
+//phl = t_cpr ? phl1 and isToday : phl1
+
+timeframe =  timeframe.period == '1' ? 'D': timeframe.period == '5' ? 'D': timeframe.period == '15' ? 'D': timeframe.period == '60' ? 'W' :  timeframe.period == '240' ? 'W': timeframe.period == 'D' ? 'M' : timeframe.period == 'W' ? 'M' : timeframe.period == 'M' ? '12M' : 'W'
+
+//Cpr_value
+pivot = hlc3  //Central Povit
+BC = hl2  //Below Central povit
+TC = pivot - BC + pivot  //Top Central povot
+R1 = pivot + pivot - low
+S1 = pivot - (high - pivot) 
+R2 = pivot + high - low
+S2 = pivot - (high - low)
+R3 = high + 2 * (pivot - low)
+S3 = low - 2 * (high - pivot)
+R4 = R3 + R2 - R1
+S4 = S3 - (S1 - S2)
+
+
+
+vPP = request.security(syminfo.tickerid,timeframe, pivot[i], barmerge.gaps_off, barmerge.lookahead_on)
+bc = request.security(syminfo.tickerid,timeframe, BC[i], barmerge.gaps_off, barmerge.lookahead_on)
+tc = request.security(syminfo.tickerid,timeframe, TC[i], barmerge.gaps_off, barmerge.lookahead_on)
+vR1 = request.security(syminfo.tickerid,timeframe, R1[i], barmerge.gaps_off, barmerge.lookahead_on)
+vS1 = request.security(syminfo.tickerid,timeframe, S1[i], barmerge.gaps_off, barmerge.lookahead_on)
+vR2 = request.security(syminfo.tickerid,timeframe, R2[i], barmerge.gaps_off, barmerge.lookahead_on)
+vS2 = request.security(syminfo.tickerid,timeframe, S2[i], barmerge.gaps_off, barmerge.lookahead_on)
+vR3 = request.security(syminfo.tickerid,timeframe, R3[i], barmerge.gaps_off, barmerge.lookahead_on)
+vS3 = request.security(syminfo.tickerid,timeframe, S3[i], barmerge.gaps_off, barmerge.lookahead_on)
+vR4 = request.security(syminfo.tickerid,timeframe, R4[i], barmerge.gaps_off, barmerge.lookahead_on)
+vS4 = request.security(syminfo.tickerid,timeframe, S4[i], barmerge.gaps_off, barmerge.lookahead_on)
+
+//wPP = request.security(syminfo.tickerid, 'W', pivot[1], barmerge.gaps_off, barmerge.lookahead_on) 
+
+Ph = request.security(syminfo.tickerid,timeframe, high[i], barmerge.gaps_off, barmerge.lookahead_on)
+Pl = request.security(syminfo.tickerid,timeframe, low[i], barmerge.gaps_off, barmerge.lookahead_on)
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////===  DISPLAY CODE  ===/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CPR  //
+plot(cpr ? vPP : na, color=color.new(#FF00FF, 0), title='PP', style=plot.style_circles, trackprice=false, linewidth=2)
+plot(cpr ? bc : na, color=color.new(color.black, 0), title='BC', style=plot.style_circles, trackprice=false, linewidth=2)
+plot(cpr ? tc : na, color=color.new(#0020C2, 0), title='TC', style=plot.style_circles, trackprice=false, linewidth=2)
+plot(cpr and sr ? vS1 : na, color=color.new(#790404, 0), title='S1', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vS2 : na, color=color.new(#790404, 0), title='S2', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vS3 : na, color=color.new(#790404, 0), title='S3', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vS4 : na, color=color.new(#790404, 0), title='S4', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vR1 : na, color=color.new(#790404, 0), title='R1', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vR2 : na, color=color.new(#790404, 0), title='R2', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vR3 : na, color=color.new(#790404, 0), title='R3', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr and sr ? vR4 : na, color=color.new(#790404, 0), title='R4', style=plot.style_circles, trackprice=false, linewidth=1)
+
+//plot(wp ? wPP : na, color=color.new(#00DCFA, 0), title='WP', style=plot.style_circles, trackprice=false, linewidth=1)
+
+plot(cpr ? Ph : na, color=color.new(#DFD500, 0), title='WP', style=plot.style_circles, trackprice=false, linewidth=1)
+plot(cpr ? Pl : na, color=color.new(#DFD500, 0), title='WP', style=plot.style_circles, trackprice=false, linewidth=1)
+
+///////////////// SMA_COLOR CHANGE /////////////
+ma20 = request.security(syminfo.tickerid,timeframe.period, ta.sma(close, 20), barmerge.gaps_off, barmerge.lookahead_on)
+
+direction = 0
+direction := ta.rising(ma20,1) ? 1 : ta.falling(ma20,1) ? -1 : nz(direction[1])
+change_direction = ta.change(direction, 1)
+pcol = direction > 0 ? #00FF13 : direction < 0 ? #FF0000 : na
+
+plot(sma_c ? ma20 : na, color=color.new(pcol,40), style=plot.style_line, join=true, linewidth=2, title='20 ma color change')
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Pc = request.security(syminfo.tickerid,timeframe.period,open, barmerge.gaps_off, barmerge.lookahead_on)
+dv = df < 10 ? 10 : df > 100 ? 1000 : 100
+
+ik = int(Pc/dv)
+pl_1 = (ik*dv)
+
+
+line hiLine = na
+Lowlvl = float(pl_1)
+Highlvl = float(pl_1)
+
+for m = 1 to 20
+    hiLine := line.new(bar_index[1], level ? Lowlvl : na, bar_index, level ? Lowlvl : na, extend=extend.both, color=color.new(#3ecc45, 50), width=1)
+    Lowlvl -= df
+    
+    Highlvl += df
+    hiLine := line.new(bar_index[1],level ? Highlvl : na, bar_index,level ? Highlvl : na, extend=extend.both, color=color.new(#3ecc45, 50), width=1)
+
+
+
+    // if syminfo.ticker == "NIFTY" 
+    //     hiLine := line.new(bar_index[1], level ? Lowlvl : na, bar_index, level ? Lowlvl : na, extend=extend.both, color=color.new(color.black, 70), width=1)
+    //     Lowlvl -= 50
+        
+    //     hiLine := line.new(bar_index[1],level ? Highlvl : na, bar_index,level ? Highlvl : na, extend=extend.both, color=color.new(color.black, 70), width=1)
+    //     Highlvl += 50
+
+
+//Copyright @ Sayanjhikra
